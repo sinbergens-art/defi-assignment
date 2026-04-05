@@ -1,0 +1,47 @@
+name: Smart Contract CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    name: Compile, Test, Gas Report, Slither
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Show Foundry version
+        run: forge --version
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Slither
+        run: pip install slither-analyzer
+
+      - name: Install project dependencies
+        run: forge install
+
+      - name: Build contracts
+        run: forge build -vvv
+
+      - name: Run tests
+        run: forge test -vvv
+
+      - name: Generate gas report
+        run: forge test --gas-report
+
+      - name: Run Slither analysis
+        run: slither . --filter-paths "lib|script|test|node_modules|artifacts|cache"
